@@ -101,4 +101,3 @@ else:
     else:
         print("no solution available")
     show(organize(solution))
-
