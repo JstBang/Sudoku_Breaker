@@ -9,11 +9,10 @@ import streamlit as st
 
 #取得難易度或每日挑戰網址
 def geturl():
-    #檢測輸入的難度是否在預設裡面(difficuties那個list)或是今天的，否則傳回False
     if dif in difficulties:
         url = f"https://sudoku.com/api/v2/classic/{dif}/app_start"
     elif dif == "today":
-        date = datetime.date.today() #取得今天格式化後的日期(Ex:2026-04-06)
+        date = datetime.date.today()
         url = f"https://sudoku.com/api/dc/{date}"
     else:
         return False
@@ -25,6 +24,7 @@ def getmission():
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
         "X-Requested-With": "XMLHttpRequest"
     }
+    rs = requests.session()
     response = requests.get(url, headers=headers)
     doc = response.json()
     return [doc.get("mission"), doc.get("solution")]
@@ -69,32 +69,25 @@ def valid_number_check(num, x, y):
 
 #由1填至9測試，若皆不合法則改為0並遞迴至上一層
 def solver():
-    #找空格
     cell_exist = empty_cell_exist()
     if not cell_exist:
         return True
     x, y = cell_exist[1], cell_exist[0]
-
-    #將找到的空格填入1~9
     for i in range(1,10):
-        #測試該格是否合法
         if valid_number_check(str(i), x, y):
             board[y][x] = str(i)
-            #如果合法就下一層
             if solver():
-                #這裡是如果都填滿了，empty_cell_valid()會傳回True，而這個solver()也傳回True到main裡面呼叫他的地方
                 return True
             else:
-                #1~9都失敗後，將上一層改回0並回朔
                 board[y][x] = '0'
     return False
 
 #印出版面
 def show(board):
-    #tabulate只是用來美化的而已
     print(tabulate(board, tablefmt="fancy_grid"))
 
 difficulties = ["easy", "medium", "hard", "expert", "master", "extreme"]
+
 dif = input("請輸入難度(本日為today): ").lower()
 url = geturl()
 if not url:
@@ -104,9 +97,7 @@ else:
     board = organize(mission)
 
     if solver():
-        print("Generated Solution")
         show(board)
     else:
         print("no solution available")
-    print("Solution from the website")
     show(organize(solution))
