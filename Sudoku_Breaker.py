@@ -1,7 +1,6 @@
 import requests #可自動從網站中匯入cookies
 import datetime #取得時間
 from tabulate import tabulate #美化顯示版面
-import streamlit as st
 
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
@@ -102,11 +101,13 @@ if not url:
 else:
     mission, solution= map(str, getmission())
     board = organize(mission)
+    print("The original mission:")
+    show(board)
 
     if solver():
-        print("Generated Solution")
+        print("Generated Solution:")
         show(board)
     else:
         print("no solution available")
-    print("Solution from the website")
+    print("Solution from the website:")
     show(organize(solution))
