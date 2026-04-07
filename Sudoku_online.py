@@ -1,7 +1,6 @@
 import requests #可自動從網站中匯入cookies
 import datetime #取得時間
-from tabulate import tabulate #美化顯示版面
-import gradio as gr
+import streamlit as st
 
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
@@ -10,13 +9,13 @@ import gradio as gr
 #取得難易度或每日挑戰網址
 def geturl():
     #檢測輸入的難度是否在預設裡面(difficuties那個list)或是今天的，否則傳回False
-    if dif in difficulties:
-        url = f"https://sudoku.com/api/v2/classic/{dif}/app_start"
-    elif dif == "today":
+    if dif == "Select":
+        return False
+    if dif == "Today":
         date = datetime.date.today() #取得今天格式化後的日期(Ex:2026-04-06)
         url = f"https://sudoku.com/api/dc/{date}"
     else:
-        return False
+        url = f"https://sudoku.com/api/v2/classic/{dif.lower()}/app_start"
     return url
 
 #爬取題目跟解答(以供對答案)
@@ -91,24 +90,58 @@ def solver():
 
 #印出版面
 def show(board):
-    #tabulate只是用來美化的而已
-    print(tabulate(board, tablefmt="fancy_grid"))
+    sen = ''
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] == '0':
+                sen += '.'
+            else:
+                sen += board[i][j]
+            sen += "  "
+        sen += "\n"
+    st.code(sen, language="text")
 
-difficulties = ["easy", "medium", "hard", "expert", "master", "extreme"]
-dif = input("請輸入難度(本日為today): ").lower()
-url = geturl()
-if not url:
-    print("難度輸入錯誤")
-else:
-    mission, solution= map(str, getmission())
-    board = organize(mission)
-    print("The original mission:")
-    show(board)
+st.title("Sudoku Breaker Online")
+tab1, tab2 = st.tabs(["從Sudoku.com抓取題目", "自行輸入題目"])
 
-    if solver():
-        print("Generated Solution:")
-        show(board)
+with tab1:
+    dif = st.selectbox("請選擇難度或每日挑戰", ["Select", "Easy", "Medium", "Hard", "Expert", "Master", "Extreme", "Today"])
+    url = geturl()
+    if not url:
+        st.write("")
     else:
-        print("no solution available")
-    print("Solution from the website:")
-    show(organize(solution))
+        mission, solution= map(str, getmission())
+        board = organize(mission)
+        col1, col2= st.columns(2)
+        with col1:
+            st.write("The original mission:")
+            show(board)
+        if solver():
+            with col2:
+                st.write("The generated Solution:")
+                show(board)
+        else:
+            with col2:
+                st.write("No solution available")
+
+with tab2:
+    st.write("規則:")
+    st.write("1.輸入為一行共81位數字")
+    st.write("2.若該格為空白則輸入0")
+    st.write("")
+    mission = st.text_input("請輸入題目:")
+    if mission == "":
+        st.write("")
+    else:
+        board = organize(mission)
+        col1, col2= st.columns(2)
+        with col1:
+            st.write("The original mission:")
+            show(board)
+        if solver():
+            with col2:
+                st.write("The generated Solution:")
+                show(board)
+        else:
+            with col2:
+                st.write("No solution available")
