@@ -1,6 +1,8 @@
 import requests #可自動從網站中匯入cookies
 import datetime #取得時間
 import streamlit as st
+from tabulate import tabulate
+import copy
 
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
@@ -14,6 +16,8 @@ def geturl():
     if dif == "Today":
         date = datetime.date.today() #取得今天格式化後的日期(Ex:2026-04-06)
         url = f"https://sudoku.com/api/dc/{date}"
+    elif dif == "Master":
+        url = f"https://sudoku.com/api/v2/classic/evil/app_start"
     else:
         url = f"https://sudoku.com/api/v2/classic/{dif.lower()}/app_start"
     return url
@@ -89,17 +93,12 @@ def solver():
     return False
 
 #印出版面
-def show(board):
-    sen = ''
-    for i in range(9):
-        for j in range(9):
-            if board[i][j] == '0':
-                sen += '.'
-            else:
-                sen += board[i][j]
-            sen += "  "
-        sen += "\n"
-    st.code(sen, language="text")
+def show(board, original):
+    if not original:
+        st.code(tabulate(board, tablefmt="fancy_grid"), language="text")
+    else:
+        b = tabulate(board, tablefmt="fancy_grid").replace('0', ' ')
+        st.code(b, language="text")
 
 st.title("Sudoku Breaker Online")
 tab1, tab2 = st.tabs(["從Sudoku.com抓取題目", "自行輸入題目"])
@@ -115,11 +114,11 @@ with tab1:
         col1, col2= st.columns(2)
         with col1:
             st.write("The original mission:")
-            show(board)
+            show(board, True)
         if solver():
             with col2:
                 st.write("The generated Solution:")
-                show(board)
+                show(board, False)
         else:
             with col2:
                 st.write("No solution available")
@@ -137,11 +136,11 @@ with tab2:
         col1, col2= st.columns(2)
         with col1:
             st.write("The original mission:")
-            show(board)
+            show(board, True)
         if solver():
             with col2:
                 st.write("The generated Solution:")
-                show(board)
+                show(board, False)
         else:
             with col2:
                 st.write("No solution available")
