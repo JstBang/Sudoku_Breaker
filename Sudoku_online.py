@@ -2,7 +2,7 @@ import requests #可自動從網站中匯入cookies
 import datetime #取得時間
 import streamlit as st
 from tabulate import tabulate
-import copy
+import pandas as pd
 
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
@@ -11,8 +11,6 @@ import copy
 #取得難易度或每日挑戰網址
 def geturl():
     #檢測輸入的難度是否在預設裡面(difficuties那個list)或是今天的，否則傳回False
-    if dif == "Select":
-        return False
     if dif == "Today":
         date = datetime.date.today() #取得今天格式化後的日期(Ex:2026-04-06)
         url = f"https://sudoku.com/api/dc/{date}"
@@ -105,10 +103,8 @@ tab1, tab2 = st.tabs(["從Sudoku.com抓取題目", "自行輸入題目"])
 
 with tab1:
     dif = st.selectbox("請選擇難度或每日挑戰", ["Select", "Easy", "Medium", "Hard", "Expert", "Master", "Extreme", "Today"])
-    url = geturl()
-    if not url:
-        st.write("")
-    else:
+    if st.button("從網站抓取"):
+        url = geturl()
         mission, solution= map(str, getmission())
         board = organize(mission)
         col1, col2= st.columns(2)
@@ -124,23 +120,25 @@ with tab1:
                 st.write("No solution available")
 
 with tab2:
-    st.write("規則:")
-    st.write("1.輸入為一行共81位數字")
-    st.write("2.若該格為空白則輸入0")
-    st.write("")
-    mission = st.text_input("請輸入題目:")
-    if mission == "":
-        st.write("")
-    else:
-        board = organize(mission)
-        col1, col2= st.columns(2)
+    board = [list("0"*9) for i in range(0, 81, 9)]
+    for i in range(9):
+        cols = st.columns(9)
+        for j in range(9):
+            with cols[j]:
+                ans = st.text_input(label=f"{i}{j}", value='', max_chars=1, label_visibility="collapsed")
+                if ans == '':
+                    ans = '0'
+                board[i][j] = ans
+    #board = organize("290045801080026300040890006008003007432000000010000600005070000000002008100530004")
+    col1, col2= st.columns(2)
+    if st.button("生成"):
         with col1:
             st.write("The original mission:")
             show(board, True)
         if solver():
             with col2:
                 st.write("The generated Solution:")
-                show(board, False)
+                show(board, True)
         else:
             with col2:
                 st.write("No solution available")
