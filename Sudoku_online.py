@@ -1,8 +1,7 @@
 import requests #可自動從網站中匯入cookies
 import datetime #取得時間
-import streamlit as st
-from tabulate import tabulate
-import pandas as pd
+import streamlit as st #UI設計
+from tabulate import tabulate #美化版面
 
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
