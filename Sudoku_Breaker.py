@@ -1,6 +1,7 @@
 import requests #可自動從網站中匯入cookies
 import datetime #取得時間
 from tabulate import tabulate #美化顯示版面
+import os #在直接點擊執行的情況下，能夠保持程式不被關閉
 
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
@@ -89,9 +90,12 @@ def solver():
     return False
 
 #印出版面
-def show(board):
+def show(board, original):
     #tabulate只是用來美化的而已
-    print(tabulate(board, tablefmt="fancy_grid"))
+    if original:
+        print(tabulate(board, tablefmt="fancy_grid").replace('0',' '))
+    else:
+        print(tabulate(board, tablefmt="fancy_grid"))
 
 difficulties = ["easy", "medium", "hard", "expert", "master", "extreme"]
 dif = input("請輸入難度(本日為today): ").lower()
@@ -102,12 +106,13 @@ else:
     mission, solution= map(str, getmission())
     board = organize(mission)
     print("The original mission:")
-    show(board)
+    show(board, True)
 
     if solver():
         print("Generated Solution:")
-        show(board)
+        show(board, False)
     else:
         print("no solution available")
     print("Solution from the website:")
-    show(organize(solution))
+    show(organize(solution), False)
+    os.system("pause")

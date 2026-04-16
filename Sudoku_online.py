@@ -2,6 +2,7 @@ import requests #可自動從網站中匯入cookies
 import datetime #取得時間
 import streamlit as st #UI設計
 from tabulate import tabulate #美化版面
+import time #計算耗費時間
 
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
@@ -97,12 +98,14 @@ def show(board, original):
         b = tabulate(board, tablefmt="fancy_grid").replace('0', ' ')
         st.code(b, language="text")
 
+def get_time():
+    return time.time()
 st.title("Sudoku Breaker Online")
 tab1, tab2 = st.tabs(["從Sudoku.com抓取題目", "自行輸入題目"])
 
 with tab1:
     dif = st.selectbox("請選擇難度或每日挑戰", ["Select", "Easy", "Medium", "Hard", "Expert", "Master", "Extreme", "Today"])
-    if st.button("從網站抓取"):
+    if st.button("從網站抓取") and dif != "Select":
         url = geturl()
         mission, solution= map(str, getmission())
         board = organize(mission)
@@ -110,10 +113,13 @@ with tab1:
         with col1:
             st.write("The original mission:")
             show(board, True)
+            start_time = get_time()
         if solver():
             with col2:
                 st.write("The generated Solution:")
                 show(board, False)
+                end_time = get_time()
+                st.write(f"耗時: {round(end_time - start_time, 5)}秒")
         else:
             with col2:
                 st.write("No solution available")
@@ -125,19 +131,27 @@ with tab2:
         for j in range(9):
             with cols[j]:
                 ans = st.text_input(label=f"{i}{j}", value='', max_chars=1, label_visibility="collapsed")
-                if ans == '':
+                if ans == '' or ans == ' ':
                     ans = '0'
                 board[i][j] = ans
     #board = organize("290045801080026300040890006008003007432000000010000600005070000000002008100530004")
     col1, col2= st.columns(2)
     if st.button("生成"):
-        with col1:
-            st.write("The original mission:")
-            show(board, True)
-        if solver():
-            with col2:
-                st.write("The generated Solution:")
+        numbers = ['0','1','2','3','4','5','6','7','8','9']
+        isNumber = True
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] not in numbers:
+                    isNumber = False
+                    st.write(f"({j+1},{i+1}) 填入無效字元")
+        if isNumber:
+            with col1:
+                st.write("The original mission:")
                 show(board, True)
-        else:
-            with col2:
-                st.write("No solution available")
+            if solver():
+                with col2:
+                    st.write("The generated Solution:")
+                    show(board, True)
+            else:
+                with col2:
+                    st.write("No solution available")
