@@ -4,6 +4,8 @@ import streamlit as st #UI設計
 from tabulate import tabulate #美化版面
 import time #計算耗費時間
 
+#region 爬蟲
+
 #api url rules
 #daily mission url:"https://sudoku.com/api/dc/yyyy-mm-dd"
 #optional difficulty mission url: "https://sudoku.com/api/v2/classic/{difficulty}/app_start"
@@ -28,7 +30,7 @@ def getmission():
     }
     response = requests.get(url, headers=headers)
     doc = response.json()
-    return [doc.get("mission"), doc.get("solution")]
+    return doc.get("mission")
 
 #將題目從一行轉為二維陣列
 def organize(mission):
@@ -39,6 +41,10 @@ def organize(mission):
             t = mission[i*9+j]
             board[i].append(t)
     return board
+
+#endregion
+
+#region 演算法
 
 #取得最近(從左上角至右下角)的空格欄位(x,y)，若無空格判定為完成(傳回False)
 def empty_cell_exist():
@@ -90,6 +96,13 @@ def solver():
                 board[y][x] = '0'
     return False
 
+#endregion
+
+#region UI
+
+def get_time():
+    return time.time()
+
 #印出版面
 def show(board, original):
     if not original:
@@ -98,8 +111,6 @@ def show(board, original):
         b = tabulate(board, tablefmt="fancy_grid").replace('0', ' ')
         st.code(b, language="text")
 
-def get_time():
-    return time.time()
 st.title("Sudoku Breaker Online")
 tab1, tab2 = st.tabs(["從Sudoku.com抓取題目", "自行輸入題目"])
 
@@ -107,7 +118,7 @@ with tab1:
     dif = st.selectbox("請選擇難度或每日挑戰", ["Select", "Easy", "Medium", "Hard", "Expert", "Master", "Extreme", "Today"])
     if st.button("從網站抓取") and dif != "Select":
         url = geturl()
-        mission, solution= map(str, getmission())
+        mission = getmission()
         board = organize(mission)
         col1, col2= st.columns(2)
         with col1:
@@ -148,10 +159,15 @@ with tab2:
             with col1:
                 st.write("The original mission:")
                 show(board, True)
+                start_time = get_time()
             if solver():
                 with col2:
+                    end_time = get_time()
                     st.write("The generated Solution:")
                     show(board, True)
+                    st.write(f"耗時: {round(end_time - start_time, 5)}秒")
             else:
                 with col2:
                     st.write("No solution available")
+
+#endregion
