@@ -116,24 +116,27 @@ tab1, tab2 = st.tabs(["從Sudoku.com抓取題目", "自行輸入題目"])
 
 with tab1:
     dif = st.selectbox("請選擇難度或每日挑戰", ["Select", "Easy", "Medium", "Hard", "Expert", "Master", "Extreme", "Today"])
-    if st.button("從網站抓取") and dif != "Select":
-        url = geturl()
-        mission = getmission()
-        board = organize(mission)
-        col1, col2= st.columns(2)
-        with col1:
-            st.write("The original mission:")
-            show(board, True)
-            start_time = get_time()
-        if solver():
-            with col2:
-                st.write("The generated Solution:")
-                show(board, False)
-                end_time = get_time()
-                st.write(f"耗時: {round(end_time - start_time, 5)}秒")
+    if st.button("從網站抓取"):
+        if dif == "Select":
+            st.write("請先選擇難度")
         else:
-            with col2:
-                st.write("No solution available")
+            url = geturl()
+            mission = getmission()
+            board = organize(mission)
+            col1, col2= st.columns(2)
+            with col1:
+                st.write("The original mission:")
+                show(board, True)
+                start_time = get_time()
+            if solver():
+                with col2:
+                    st.write("The generated Solution:")
+                    show(board, False)
+                    end_time = get_time()
+                    st.write(f"耗時: {round(end_time - start_time, 5)}秒")
+            else:
+                with col2:
+                    st.write("No solution available")
 
 with tab2:
     board = [list("0"*9) for i in range(0, 81, 9)]
