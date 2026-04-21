@@ -148,17 +148,21 @@ with tab2:
                 if ans == '' or ans == ' ':
                     ans = '0'
                 board[i][j] = ans
-    #board = organize("290045801080026300040890006008003007432000000010000600005070000000002008100530004")
     col1, col2= st.columns(2)
     if st.button("生成"):
         numbers = ['0','1','2','3','4','5','6','7','8','9']
         isNumber = True
+        allZero = True
         for i in range(9):
             for j in range(9):
                 if board[i][j] not in numbers:
                     isNumber = False
                     st.write(f"({j+1},{i+1}) 填入無效字元")
-        if isNumber:
+                if board[i][j] != '0':
+                    allZero = False
+        if allZero:
+            st.write("版面一片空白 就跟你的人生一樣")
+        elif isNumber:
             with col1:
                 st.write("The original mission:")
                 show(board, True)
